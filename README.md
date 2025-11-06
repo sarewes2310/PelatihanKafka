@@ -52,19 +52,18 @@ flowchart TD
 ## Struktur Repositori
 
 ```
-PemateriKafka/
+PelatihanKafka/
 ├── docker-compose.yml         # Single-node Kafka + Kafka UI (jaringan pelatihankafka_default)
 ├── servers/                   # Layer aplikasi Laravel + MySQL + Supervisor
 │   ├── docker-compose.yml     # Producer, consumer, consumer-daemon, mysql_servers
 │   ├── producer/              # Laravel HTTP API (publish raw_orders)
 │   └── consumer/              # Laravel worker/ingestor (consume enriched_orders)
-├── etl/                       # Komponen ETL (extract, transform, sink, n8n)
-│   ├── extract/example-maxwell/   # Maxwell CDC + MySQL metadata
-│   ├── transform/example-python/  # Worker Python enrichment
-│   ├── sink/example-python/       # Worker Python sink → MySQL
-│   └── n8n/                       # Low-code automation stack
-├── GEMINI.md, KAFKA_ETL_GUIDE.md, kafka-olap-guide.md
-└── OUTLINES.md, PROMPTS.md, OUTLINEV2.md, AGENTS.md
+└── etl/                       # Komponen ETL (extract, transform, sink, n8n)
+    ├── extract/example-maxwell/   # Maxwell CDC + MySQL metadata
+    ├── transform/example-python/  # Worker Python enrichment
+    ├── sink/example-python/       # Worker Python sink → MySQL
+    └── n8n/                       # Low-code automation stack
+
 ```
 
 ## Matriks Komponen
