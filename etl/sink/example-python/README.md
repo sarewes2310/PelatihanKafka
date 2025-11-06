@@ -10,7 +10,7 @@ This sink connector consumes enriched order events from the `enriched_orders` Ka
 
 ## Features
 
-- **Kafka Consumer**: Consumes from `enriched_orders` topic with manual offset management
+- **Kafka Consumer**: Consumes from topic with manual offset management
 - **MySQL Integration**: Writes to MySQL with automatic table creation
 - **Idempotent Writes**: Uses `ON DUPLICATE KEY UPDATE` for upsert operations
 - **Connection Retry**: Automatic retry logic for MySQL connections
@@ -68,25 +68,6 @@ Environment variables (all optional with defaults):
 - `MYSQL_PASSWORD`: MySQL password (default: `root`)
 - `MYSQL_DATABASE`: Target database (default: `app_consumer`)
 - `MYSQL_TABLE`: Target table (default: `orders`)
-
-## Database Schema
-
-The sink automatically creates the following table if it doesn't exist:
-
-```sql
-CREATE TABLE IF NOT EXISTS `orders` (
-    `id` VARCHAR(36) PRIMARY KEY,
-    `order_id` VARCHAR(255) NOT NULL,
-    `quantity` INT NOT NULL DEFAULT 1,
-    `unit_price` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    `total_value` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    `processed_at` BIGINT,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX `idx_order_id` (`order_id`),
-    INDEX `idx_processed_at` (`processed_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
 
 ## Usage
 
@@ -251,54 +232,6 @@ for msg in consumer:
         insert_batch(mysql_conn, batch)
         consumer.commit()
         batch = []
-```
-
-## Troubleshooting
-
-### Consumer Not Receiving Messages
-
-```bash
-# Check if topic has messages
-docker exec kafka kafka-console-consumer.sh \
-  --bootstrap-server localhost:9092 \
-  --topic enriched_orders \
-  --from-beginning \
-  --max-messages 5
-
-# Check consumer group offset
-docker exec kafka kafka-consumer-groups.sh \
-  --bootstrap-server localhost:9092 \
-  --group sink-mysql-workers \
-  --describe
-```
-
-### MySQL Connection Issues
-
-```bash
-# Test MySQL connectivity from sink container
-docker exec kafka-sink-mysql ping -c 3 mysql_servers
-
-# Check MySQL status
-docker exec mysql_servers mysqladmin -uroot -proot status
-```
-
-### Reset Consumer Offsets (Development Only)
-
-```bash
-# Stop the sink first
-docker-compose down
-
-# Reset offsets to earliest
-docker exec kafka kafka-consumer-groups.sh \
-  --bootstrap-server localhost:9092 \
-  --group sink-mysql-workers \
-  --topic enriched_orders \
-  --reset-offsets \
-  --to-earliest \
-  --execute
-
-# Restart sink
-docker-compose up -d
 ```
 
 ## Educational Context
