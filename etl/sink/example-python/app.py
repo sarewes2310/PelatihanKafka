@@ -74,45 +74,17 @@ def get_mysql_connection():
                 raise
 
 
-def create_table_if_not_exists(connection):
-    """Create the orders table if it doesn't exist"""
-    create_table_query = f"""
-    CREATE TABLE IF NOT EXISTS `{MYSQL_TABLE}` (
-        `id` VARCHAR(36) PRIMARY KEY,
-        `order_id` VARCHAR(255) NOT NULL,
-        `quantity` INT NOT NULL DEFAULT 1,
-        `unit_price` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-        `total_value` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-        `processed_at` BIGINT,
-        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX `idx_order_id` (`order_id`),
-        INDEX `idx_processed_at` (`processed_at`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    """
-    
-    try:
-        cursor = connection.cursor()
-        cursor.execute(create_table_query)
-        connection.commit()
-        cursor.close()
-        print(f"Table `{MYSQL_TABLE}` ready")
-    except mysql.connector.Error as err:
-        print(f"Error creating table: {err}")
-        raise
-
 
 def insert_order(connection, payload: Dict[str, Any]) -> bool:
     """Insert or update order data into MySQL"""
     insert_query = f"""
-    INSERT INTO `{MYSQL_TABLE}` (id, order_id, quantity, unit_price, total_value, processed_at)
+    INSERT INTO `{MYSQL_TABLE}` (id, nim, name, email, address)
     VALUES (%(id)s, %(order_id)s, %(quantity)s, %(unit_price)s, %(total_value)s, %(processed_at)s)
     ON DUPLICATE KEY UPDATE
-        quantity = VALUES(quantity),
-        unit_price = VALUES(unit_price),
-        total_value = VALUES(total_value),
-        processed_at = VALUES(processed_at),
-        updated_at = CURRENT_TIMESTAMP
+        nim = VALUES(nim),
+        name = VALUES(name),
+        email = VALUES(email),
+        address = VALUES(address)
     """
     
     try:
@@ -120,12 +92,12 @@ def insert_order(connection, payload: Dict[str, Any]) -> bool:
         
         # Prepare data with defaults
         data = {
-            "id": payload.get("id") or payload.get("order_id", str(time.time())),
-            "order_id": payload.get("order_id", "unknown"),
-            "quantity": payload.get("quantity", 1),
-            "unit_price": payload.get("unit_price", 0.0),
-            "total_value": payload.get("total_value", 0.0),
-            "processed_at": payload.get("processed_at", int(time.time())),
+            "id": payload.get("id"),
+            "nim": payload.get("nim", "unknown"),
+            "name": payload.get("name", 1),
+            "email": payload.get("email", 0.0),
+            "address": payload.get("address", 0.0),
+            "sync_at": int(time.time())
         }
         
         cursor.execute(insert_query, data)
@@ -145,7 +117,6 @@ def main():
     
     # Initialize MySQL connection
     mysql_conn = get_mysql_connection()
-    create_table_if_not_exists(mysql_conn)
     
     print(f"Sink is consuming from '{SOURCE_TOPIC}' and writing to MySQL {MYSQL_HOST}/{MYSQL_DATABASE}.{MYSQL_TABLE}")
     
