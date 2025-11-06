@@ -19,26 +19,25 @@ Repositori ini menyatukan contoh arsitektur **event-driven ETL** berbasis **Apac
 
 ## Arsitektur & Alur Data
 
-```
-┌─────────────┐      ┌──────────────┐      ┌─────────────┐      ┌──────────────┐
-│   MySQL     │──────▶│   Maxwell    │──────▶│    Kafka    │──────▶│  Python ETL  │
-│  (Source)   │ CDC   │  (CDC Tool)  │ CDC   │  (Broker)   │      │  (Transform) │
-└─────────────┘       └──────────────┘ Topic └─────────────┘      └──────────────┘
-                                                    │                      │
-                                                    │                      │
-                                                    ▼                      ▼
-                                             ┌─────────────┐      ┌──────────────┐
-                                             │  Producer   │      │  Consumer    │
-                                             │  (Laravel)  │      │  (Laravel)   │
-                                             └─────────────┘      └──────────────┘
-                                                    │                      │
-                                                    └──────────────────────┘
-                                                            │
-                                                            ▼
-                                                    ┌──────────────┐
-                                                    │  MySQL       │
-                                                    │  (Target)    │
-                                                    └──────────────┘
+```mermaid
+flowchart TD
+    A[(MySQL Source)] -->|CDC Binary Log| B[Maxwell CDC Tool]
+    B -->|CDC Topic| C{Kafka Broker}
+    C -->|raw_orders| D[Python ETL Transform]
+    D -->|enriched_orders| C
+    C -->|Business Events| E[Laravel Producer]
+    C -->|Consume Events| F[Laravel Consumer]
+    D -->|Enriched Data| F
+    E -->|Publish Events| C
+    F -->|Persist Data| G[(MySQL Target)]
+
+    style A fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    style B fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style C fill:#f3e5f5,stroke:#4a148c,stroke-width:3px
+    style D fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    style E fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style F fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style G fill:#e1f5ff,stroke:#01579b,stroke-width:2px
 ```
 
 **Alur singkat**
