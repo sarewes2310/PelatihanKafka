@@ -1,0 +1,13 @@
+GEMINI.md
+KAFKA_ETL_GUIDE.md
+kafka-olap-guide.md
+OUTLINES.md
+PROMPTS.md
+AGENTS.md
+/.github/copilot-instructions.md
+/servers/consumer/vendor
+/servers/producer/vendor
+/servers/consumer/.env
+/servers/producer/.env
+/servers/consumer/node_modules
+/servers/producer/node_modules

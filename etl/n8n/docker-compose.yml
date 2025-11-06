@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+  n8n_pelatihan:
+    image: docker.n8n.io/n8nio/n8n
+    hostname: n8n_pelatihan
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # Core n8n Configuration
+      - N8N_HOST=n8n
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - NODE_ENV=production
+      - GENERIC_TIMEZONE=Asia/Jakarta
+      - TZ=Asia/Jakarta
+
+      # Security and Permissions
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_SECURE_COOKIE=false
+
+      # Database Configuration (MySQL)
+      - DB_TYPE=mysqldb
+      - DB_MYSQLDB_DATABASE=n8n_services
+      - DB_MYSQLDB_HOST=mysql
+      - DB_MYSQLDB_PORT=3306
+      - DB_MYSQLDB_USER=root
+      - DB_MYSQLDB_PASSWORD=root
+
+      # Kafka/AutoMQ Integration (for workflows)
+      - N8N_CUSTOM_EXTENSIONS=/home/node/.n8n/custom
+
+      # Execution Settings
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_SAVE_ON_PROGRESS=true
+      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true
+      - EXECUTIONS_TIMEOUT=3600
+
+      # Workflow Settings
+      - N8N_TEMPLATES_ENABLED=true
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=true
+      - N8N_DIAGNOSTICS_ENABLED=true
+
+      # Logging
+      - N8N_LOG_LEVEL=info
+      - N8N_LOG_OUTPUT=console
+
+      # API Settings
+      - N8N_PUBLIC_API_DISABLED=false
+      - N8N_PUBLIC_API_SWAGGERUI_DISABLED=false
+
+      # Enable metrics for Prometheus integration
+      - N8N_METRICS=true
+
+      # Queue mode settings (compatible with Kafka CDC pipeline)
+      - EXECUTIONS_MODE=regular
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - n8n_files:/files
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - pelatihankafka_default
+  mysql_n8n:
+    image: mysql:8.0
+    container_name: mysql_cdc
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: n8n_services
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: --default-authentication-plugin=mysql_native_password
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pelatihankafka_default
+
+volumes:
+  n8n_data:
+  n8n_files:
+  mysql-data:
+
+networks:
+  pelatihankafka_default:
+    external: true

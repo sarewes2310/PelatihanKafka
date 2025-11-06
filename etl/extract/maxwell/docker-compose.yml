@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+  maxwell_cdc:
+    image: zendesk/maxwell:latest
+    hostname: maxwell_cdc
+    container_name: maxwell_cdc
+    depends_on:
+      - mysql
+    ports:
+      - "8083:8080" # HTTP diagnostic endpoint
+    volumes:
+      - ./config.properties:/app/config.properties:ro
+    # Use config file for all settings
+    command: bin/maxwell --config=/app/config.properties
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+  mysql_cdc:
+    image: mysql:8.0
+    container_name: mysql_cdc
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: maxwell_cdc
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: --default-authentication-plugin=mysql_native_password
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kafka-shared

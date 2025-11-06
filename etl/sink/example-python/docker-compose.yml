@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  kafka-sink-mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kafka-sink-mysql
+    hostname: kafka-sink-mysql
+    environment:
+      # Kafka Configuration
+      KAFKA_BROKERS: "kafka:9092"
+      SOURCE_TOPIC: "enriched_orders"
+      SINK_GROUP_ID: "sink-mysql-workers"
+
+      # MySQL Configuration
+      MYSQL_HOST: "mysql_servers"
+      MYSQL_PORT: "3306"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "root"
+      MYSQL_DATABASE: "app_consumer"
+      MYSQL_TABLE: "orders"
+    volumes:
+      - ./app.py:/app/app.py # Mount for development/hot reload
+    restart: unless-stopped
+    networks:
+      - pelatihankafka_default
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+networks:
+  pelatihankafka_default:
+    external: true

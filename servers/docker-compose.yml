@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  producer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7001:80"
+    volumes:
+      - ./producer:/var/www # prod
+      - ./producer/apache-default.conf:/etc/apache2/sites-available/000-default.conf
+    #   - ./worker.conf:/etc/supervisor/conf.d/keuangan-worker.conf # prod
+    working_dir: /var/www
+    networks:
+      - pelatihankafka_default
+  consumer:
+    image: infraunnes/php:8.2-apache-rdkafka
+    ports:
+      - "7002:80"
+    volumes:
+      - ./consumer:/var/www # prod
+      - ./consumer/apache-default.conf:/etc/apache2/sites-available/000-default.conf
+    working_dir: /var/www
+    networks:
+      - pelatihankafka_default
+
+  consumer-daemon:
+    image: infraunnes/php:8.2-apache-rdkafka
+    volumes:
+      - ./consumer:/var/www # prod
+      - ./consumer/worker.conf:/etc/supervisor/conf.d/consumer-kafka-worker.conf # prod
+    working_dir: /var/www
+    networks:
+      - pelatihankafka_default
+
+  mysql_servers:
+    image: mysql:8.0
+    container_name: mysql_servers
+    hostname: mysql_servers
+    ports:
+      - "33069:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app_consumer
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: --default-authentication-plugin=mysql_native_password
+      --server-id=1
+      --log-bin=mysql-bin
+      --binlog-format=ROW
+      --binlog-row-image=FULL
+      --binlog-rows-query-log-events=ON
+      --binlog-row-metadata=FULL
+      --innodb-flush-log-at-trx-commit=1
+      --sync-binlog=1
+      --binlog-expire-logs-seconds=864000
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pelatihankafka_default
+
+volumes:
+  mysql-data:
+    driver: local
+
+networks:
+  pelatihankafka_default:
+    external: true
