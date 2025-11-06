@@ -15,7 +15,9 @@ services:
     networks:
       - pelatihankafka_default
   consumer:
-    image: infraunnes/php:8.2-apache-rdkafka
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "7002:80"
     volumes:
