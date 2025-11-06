@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\MahasiswaRequest;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Junges\Kafka\Facades\Kafka;
 
 class MahasiswaController extends Controller
 {
@@ -37,7 +38,19 @@ class MahasiswaController extends Controller
      */
     public function store(MahasiswaRequest $request): RedirectResponse
     {
-        Mahasiswa::create($request->validated());
+        $mahasiswa = Mahasiswa::create($request->validated());
+
+        Kafka::asyncPublish(config('kafka.brokers'))
+            ->onTopic('pelatihan_kafka.producer.mahasiswa')
+            ->withHeaders([
+                'id' => $mahasiswa->id,
+            ])
+            ->withBody([
+                'event' => 'mahasiswa.created',
+                'data'  => $mahasiswa->toArray(),
+                'sent_at' => now()->toIso8601String(),
+            ])
+            ->send();
 
         return Redirect::route('mahasiswas.index')
             ->with('success', 'Mahasiswa created successfully.');
@@ -69,6 +82,18 @@ class MahasiswaController extends Controller
     public function update(MahasiswaRequest $request, Mahasiswa $mahasiswa): RedirectResponse
     {
         $mahasiswa->update($request->validated());
+
+        Kafka::asyncPublish(config('kafka.brokers'))
+            ->onTopic('pelatihan_kafka.producer.mahasiswa')
+            ->withHeaders([
+                'id' => $mahasiswa->id,
+            ])
+            ->withBody([
+                'event' => 'mahasiswa.updated',
+                'data'  => $mahasiswa->toArray(),
+                'sent_at' => now()->toIso8601String(),
+            ])
+            ->send();
 
         return Redirect::route('mahasiswas.index')
             ->with('success', 'Mahasiswa updated successfully');

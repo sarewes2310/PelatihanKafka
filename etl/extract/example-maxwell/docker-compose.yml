@@ -3,9 +3,8 @@ services:
   maxwell_cdc:
     image: zendesk/maxwell:latest
     hostname: maxwell_cdc
-    container_name: maxwell_cdc
     depends_on:
-      - mysql
+      - mysql_cdc
     ports:
       - "8083:8080" # HTTP diagnostic endpoint
     volumes:
@@ -19,14 +18,15 @@ services:
       retries: 5
       start_period: 60s
     restart: unless-stopped
+    networks:
+      - pelatihankafka_default
   mysql_cdc:
     image: mysql:8.0
-    container_name: mysql_cdc
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: maxwell_cdc
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql_cdc-data:/var/lib/mysql
       # - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     command: --default-authentication-plugin=mysql_native_password
     deploy:
@@ -43,4 +43,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - kafka-shared
+      - pelatihankafka_default
+volumes:
+  mysql_cdc-data:
+    driver: local
+
+networks:
+  pelatihankafka_default:
+    external: true

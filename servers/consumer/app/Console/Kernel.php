@@ -8,6 +8,15 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     /**
+     * The Artisan commands provided by the application.
+     *
+     * @var array<int, class-string>
+     */
+    protected $commands = [
+        \App\Console\Commands\ConsumeMahasiswaKafka::class,
+    ];
+
+    /**
      * Define the application's command schedule.
      */
     protected function schedule(Schedule $schedule): void

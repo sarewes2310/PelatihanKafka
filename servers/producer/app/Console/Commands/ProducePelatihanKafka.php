@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Junges\Kafka\Facades\Kafka;
+use Junges\Kafka\Message\Message;
 
 class ProducePelatihanKafka extends Command
 {
@@ -45,15 +46,25 @@ class ProducePelatihanKafka extends Command
             ];
         }
 
-        Kafka::publishOn('pelatihan_kafka')
-            ->withHeaders([
-                'correlation_id' => (string) Str::uuid(),
+        $correlationId = (string) Str::uuid();
+        $message = new Message(
+            headers: [
+                'correlation_id' => $correlationId,
                 'app' => config('app.name'),
-            ])
-            ->withBody($body)
-            ->send();
+            ],
+            body: $body,
+            key: $correlationId
+        );
 
-        $this->info('Message published to pelatihan_kafka.');
+        Kafka::asyncPublish(config('kafka.brokers'))->onTopic('pelatihan_kafka.demo_2')
+             ->withHeaders([
+                 'correlation_id' => (string) Str::uuid(),
+                 'app' => config('app.name'),
+             ])
+             ->withMessage($message)
+             ->send();
+
+        $this->info('Message published to pelatihan_kafka.demo');
 
         return self::SUCCESS;
     }

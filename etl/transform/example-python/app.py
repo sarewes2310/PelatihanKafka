@@ -6,7 +6,10 @@ import time
 from typing import Any, Dict
 
 from confluent_kafka import Consumer, Producer
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
 
 BROKERS = os.getenv("KAFKA_BROKERS", "kafka:9092")
 SOURCE_TOPIC = os.getenv("SOURCE_TOPIC", "raw_orders")
@@ -41,10 +44,8 @@ def build_producer() -> Producer:
 
 
 def enrich(payload: Dict[str, Any]) -> Dict[str, Any]:
-    quantity = payload.get("quantity", 1)
-    unit_price = payload.get("unit_price", 0.0)
-    payload["total_value"] = round(quantity * unit_price, 2)
-    payload["processed_at"] = int(time.time())
+    payload["flag"] = 'transform'
+    payload["sync_at"] = int(time.time())
     return payload
 
 

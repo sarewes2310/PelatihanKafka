@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  kafka-transform-python:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kafka-transform-python
+    hostname: kafka-transform-python
+    env_file:
+      - .env
+    volumes:
+      - ./app.py:/app/app.py # Hot reload while developing locally
+    restart: unless-stopped
+    networks:
+      - pelatihankafka_default
+
+networks:
+  pelatihankafka_default:
+    external: true

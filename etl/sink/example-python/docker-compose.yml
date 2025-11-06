@@ -9,7 +9,7 @@ services:
     hostname: kafka-sink-mysql
     environment:
       # Kafka Configuration
-      KAFKA_BROKERS: "kafka:9092"
+      KAFKA_BROKERS: "kafka:29092"
       SOURCE_TOPIC: "enriched_orders"
       SINK_GROUP_ID: "sink-mysql-workers"
 
@@ -25,15 +25,6 @@ services:
     restart: unless-stopped
     networks:
       - pelatihankafka_default
-
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 256M
 
 networks:
   pelatihankafka_default:

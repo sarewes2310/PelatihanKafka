@@ -29,9 +29,11 @@ services:
 
   consumer-daemon:
     image: infraunnes/php:8.2-apache-rdkafka
+    command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
     volumes:
       - ./consumer:/var/www # prod
-      - ./consumer/worker.conf:/etc/supervisor/conf.d/consumer-kafka-worker.conf # prod
+      - ./consumer/supervisord.conf:/etc/supervisor/supervisord.conf # main supervisord config
+      - ./consumer/supervisord-conf/consume-mahasiswa.conf:/etc/supervisor/conf.d/consume-mahasiswa.conf # program config
     working_dir: /var/www
     networks:
       - pelatihankafka_default
