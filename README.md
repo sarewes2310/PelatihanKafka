@@ -1,6 +1,6 @@
 # Kafka ETL Training Project
 
-Repositori ini menyatukan contoh arsitektur **event-driven ETL** berbasis **Apache Kafka**, dua aplikasi **Laravel 10** (producer & consumer), worker **Python** untuk transformasi, serta integrasi **CDC** lewat Maxwell. Materi ditujukan untuk memahami pola data engineering di ranah Higher Education OLAP (THE & IKU metrics).
+Repositori ini menyatukan contoh arsitektur **event-driven ETL** berbasis **Apache Kafka**, dua aplikasi **Laravel 10** (producer & consumer), worker **Python** untuk transformasi, serta integrasi **CDC** lewat Maxwell.
 
 ## Ringkasan Proyek
 
