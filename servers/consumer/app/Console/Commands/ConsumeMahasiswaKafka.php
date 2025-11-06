@@ -46,12 +46,12 @@ class ConsumeMahasiswaKafka extends Command
                     ->withBrokers(config('kafka.brokers'))
                     ->withAutoCommit()
                     ->withOption('auto.offset.reset', 'earliest')
-                    ->withOption('session.timeout.ms', '30000')
-                    ->withOption('heartbeat.interval.ms', '10000')
-                    ->withOption('max.poll.interval.ms', '300000')
-                    ->withOption('connections.max.idle.ms', '540000')
-                    ->withOption('metadata.max.age.ms', '300000')
-                    ->withOption('socket.timeout.ms', '60000')
+                    ->withOption('session.timeout.ms', 30000) // 30 seconds - increased from default
+                    ->withOption('heartbeat.interval.ms', 10000) // 10 seconds heartbeat
+                    ->withOption('max.poll.interval.ms', 300000) // 5 minutes max poll interval
+                    ->withOption('connections.max.idle.ms', 540000) // 9 minutes connection idle
+                    ->withOption('metadata.max.age.ms', 300000) // 5 minutes metadata refresh
+                    ->withOption('socket.timeout.ms', 60000) // 60 seconds socket timeout
                     ->withHandler(function (ConsumerMessage $message) {
                         $this->consumeMahasiswaEvent($message);
                     })
