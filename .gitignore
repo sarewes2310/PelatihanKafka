@@ -12,3 +12,4 @@ AGENTS.md
 /servers/producer/.env
 /servers/consumer/node_modules
 /servers/producer/node_modules
+/etl/*/*/.env
