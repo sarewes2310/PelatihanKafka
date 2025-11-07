@@ -8,8 +8,6 @@ AGENTS.md
 /.github/copilot-instructions.md
 /servers/consumer/vendor
 /servers/producer/vendor
-/servers/consumer/.env
-/servers/producer/.env
 /servers/consumer/node_modules
 /servers/producer/node_modules
 /etl/*/*/.env
